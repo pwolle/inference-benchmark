@@ -26,7 +26,10 @@ def time_function(f: Callable[[], Any]) -> float:
 
 
 def time_function_average(
-    f: Callable[[], Any],
+    f: Callable[[], Any],#
+    /,
+    *,
+    skip_first: bool = True,
     time_threshold: None | float = None,
     rerr_threshold: None | float = 1e-2,
 ) -> tuple[float, list[float]]:
@@ -62,6 +65,9 @@ def time_function_average(
     if time_threshold is None and rerr_threshold is None:
         error = "Either time_threshold or rerr_threshold must be set"
         raise ValueError(error)
+    
+    if skip_first:
+        f()
 
     s = time.perf_counter()
     t = []
@@ -73,8 +79,8 @@ def time_function_average(
         if time_threshold is not None and c > time_threshold:
             break
 
-        # do not trust the relative standard deviation for n < 5
-        if len(t) < 5 or rerr_threshold is None:
+        # do not trust the relative standard deviation for n < 4 (heuristic)
+        if len(t) < 4 or rerr_threshold is None:
             continue
 
         rerr = np.std(t) / np.sqrt(len(t)) / np.mean(t)
