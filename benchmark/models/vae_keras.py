@@ -1,10 +1,8 @@
-import tensorflow as tf
 import keras
+import tensorflow as tf
 
 
-
-
-def get_vae():
+def get_vae() -> keras.Sequential:
     model = keras.Sequential(
         [
             keras.layers.Dense(14, bias_initializer="random_normal"),
@@ -23,11 +21,16 @@ def get_vae():
             keras.layers.Activation("sigmoid"),
         ]
     )
-    model.build((1, 10,))
-    return tf.function(lambda x: model(x, training=False), jit_compile=True)
+    model.build((1, 10))
+    return model
 
 
-vae = get_vae()
+def main() -> None:
+    vae = get_vae()
 
-x = tf.ones((32, 10))
-print(vae(x).shape)
+    x = tf.ones((32, 10))
+    print(vae(x).shape)
+
+
+if __name__ == "__main__":
+    main()
