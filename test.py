@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import tensorflow as tf
+import torch
 
 # %%
 plot_times = []
@@ -18,13 +19,14 @@ batch_size = 32
 device = "cpu"
 
 torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
 
 vae, args, kwargs = vae_torch.get_vae_with_inputs(
     batch_size=batch_size,
     device=device,
 )
 time, times = utils_torch.time_model_inference(vae, args=args, kwargs=kwargs)
-error = np.std(times) / np.sqrt(len(times)) 
+error = np.std(times) / np.sqrt(len(times))
 
 plot_times.append(time)
 plot_ticks.append(f"Torch {device}")
@@ -39,7 +41,7 @@ vae, args, kwargs = vae_keras.get_vae_with_inputs(
     device=device,
 )
 time, times = utils_keras.time_model_inference(vae, args=args, kwargs=kwargs)
-error = np.std(times) / np.sqrt(len(times)) 
+error = np.std(times) / np.sqrt(len(times))
 
 plot_times.append(time)
 plot_ticks.append(f"Keras {device}")
@@ -50,11 +52,7 @@ fig, ax = plt.subplots(1, 1, figsize=(8, 4))
 
 ax.bar(plot_ticks, plot_times)
 ax.errorbar(
-    list(range(len(plot_times))),
-    plot_times,
-    plot_error,
-    ls="none",
-    color="black"
+    list(range(len(plot_times))), plot_times, plot_error, ls="none", color="black"
 )
 
 ax.set_ylabel("Time [s]")
