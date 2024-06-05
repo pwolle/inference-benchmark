@@ -1,12 +1,29 @@
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
+import keras
 import tensorflow as tf
+import numpy as np
+import functools
 
 from . import performance
 
 
+def _get_device(model):
+    return model.weights[0].device
+
+
+def _synchronize_after(f):
+    @functools.wraps(f)
+    def wrapped(*args, **kwargs):
+        r = f(*args, **kwargs)
+        tf.test.experimental.sync_devices()
+        return r
+    
+    return wrapped
+
+
 def time_model_inference(
-    model: Callable,
+    model: keras.Model,
     args: Sequence[Any] | None = None,
     kwargs: Mapping[str, Any] | None = None,
 ) -> tuple[float, list[float]]:
@@ -16,8 +33,8 @@ def time_model_inference(
 
     Parameters
     ---
-    model : Callable
-        The model to test.
+    model : keras.Model
+        The model to test. The model must be callable.
 
     args : Sequence[Any] | None
         The positional arguments to pass to the model, if None, an empty list
@@ -39,17 +56,21 @@ def time_model_inference(
     args = args or []
     kwargs = kwargs or {}
 
-    # with PerformanceTestConfig(device=device):
-    model = tf.function(model, jit_compile=True)
-
     synchronous = tf.config.experimental.get_synchronous_execution()
+    tf.config.experimental.set_synchronous_execution(False)
 
-    r = performance.time_function_average(
-        model,
-        skip_first=True,
-        args=args,
-        kwargs=kwargs,
-    )
+    with tf.device(_get_device(model)):
+        assert callable(model), "Model is not callable"
+
+        model = tf.function(model, jit_compile=True)
+        model = _synchronize_after(model)
+
+        r = performance.time_function_average(
+            model,
+            skip_first=True,
+            args=args,
+            kwargs=kwargs,
+        )
 
     tf.config.experimental.set_synchronous_execution(synchronous)
     return r

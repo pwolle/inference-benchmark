@@ -4,6 +4,7 @@ import keras
 import tensorflow as tf
 
 
+
 def get_vae() -> keras.Sequential:
     model = keras.Sequential(
         [
@@ -39,7 +40,7 @@ def get_vae_with_inputs(
         vae = get_vae()
         x = tf.random.normal((batch_size, 10))
 
-    return vae, [x], {}
+    return vae, [x], {"training": False}
 
 
 def main() -> None:

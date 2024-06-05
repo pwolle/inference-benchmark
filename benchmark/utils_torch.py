@@ -1,8 +1,20 @@
 from typing import Any, Callable, Mapping, Sequence
 
 import torch
+import functools
 
 from . import performance
+
+
+def _synchronize_after(f):
+    @functools.wraps(f)
+    def wrapped(*args, **kwargs):
+        r = f(*args, **kwargs)
+        torch.cuda.synchronize()
+        return r
+    
+    return wrapped
+
 
 
 def time_model_inference(
@@ -16,6 +28,7 @@ def time_model_inference(
 
     model.eval()
     model = torch.jit.script(model)
+    model = _synchronize_after(model)
 
     return performance.time_function_average(
         model,
