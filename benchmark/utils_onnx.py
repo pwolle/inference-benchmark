@@ -1,3 +1,8 @@
+import os
+
+os.environ["OMP_NUM_THREADS"] = "1"
+
+
 import tempfile
 
 import onnxruntime
@@ -6,14 +11,29 @@ import onnxruntime
 import performance
 import torch
 
+# class InputWrapper():
+
 
 def from_torch(model, inputs):
     with tempfile.NamedTemporaryFile() as f:
-        torch.onnx.export(model, inputs, f.name, verbose=False)
+        torch.onnx.export(
+            model,
+            inputs,
+            f.name,
+            input_names=["input"],
+            output_names=["output"],
+        )
+        opts = onnxruntime.SessionOptions()
+        opts.execution_mode = onnxruntime.ExecutionMode.ORT_SEQUENTIAL
+        opts.inter_op_num_threads = 1
+        opts.intra_op_num_threads = 1
+
         return onnxruntime.InferenceSession(
             f.name,
-            input_names=["input"],  # the model's input names
-            output_names=["output"],
+            providers=[
+                "CPUExecutionProvider",
+            ],
+            sess_options=opts,
         )
 
 
@@ -28,9 +48,12 @@ def time_model_inference(
     kwargs = kwargs or {}
 
     model = from_torch(model, tuple(args))
+    print(model.get_providers())
 
     return performance.time_function_average(
-        lambda *args, **kwargs: model.run(None, {"input": args[0].numpy()})[0],
+        lambda *args, **kwargs: model.run(
+            None, {"input": args[0].detach().cpu().numpy()}
+        )[0],
         skip_first=True,
         args=args,
         kwargs=kwargs,
