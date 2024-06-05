@@ -1,25 +1,46 @@
-import tensorflow as tf
+# %%
+import benchmark.models.vae_keras as vae_keras
+import benchmark.models.vae_torch as vae_torch
+import benchmark.utils_keras as utils_keras
+import benchmark.utils_torch as utils_torch
 
-from typing import Self, Literal
+import numpy as np
+import matplotlib.pyplot as plt
 
 
-class KerasTestConfig:
-    def __init__(
-        self,
-        device: Literal["cpu", "gpu"] | None = "cpu",
-    ) -> None:
-        self.device = device
-        self.device_gpus = tf.config.get_visible_devices("GPU")
-        self.synchronous = tf.config.experimental.get_synchronous_execution()
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(8, 4))
 
-    def __enter__(self: Self):
-        if self.device == "cpu":
-            tf.config.set_visible_devices([], "GPU")
+plot_times = []
+plot_ticks = []
 
-        tf.config.experimental.set_synchronous_execution(False)
 
-    def __exit__(self: Self, *_):
-        if self.device == "cpu":
-            tf.config.set_visible_devices(self.device_gpus, "GPU")
+device = "cpu"
+batch_size = 32
 
-        tf.config.experimental.set_synchronous_execution(self.synchronous)
+vae, args, kwargs = vae_keras.get_vae_with_inputs(
+    batch_size=batch_size,
+    device=device,
+)
+time, times = utils_keras.time_model_inference(vae, args=args, kwargs=kwargs)
+
+plot_times.append(time)
+plot_ticks.append(f"Keras {device}")
+
+vae, args, kwargs = vae_torch.get_vae_with_inputs(
+    batch_size=batch_size,
+    device=device,
+)
+time, times = utils_torch.time_model_inference(vae, args=args, kwargs=kwargs)
+
+plot_times.append(time)
+plot_ticks.append(f"Torch {device}")
+
+plt.bar(plot_ticks, plot_times)
+plt.ylabel("Time [s]")
+
+# rotate x-ticks
+plt.xticks(rotation=90)
+
+
+# %%

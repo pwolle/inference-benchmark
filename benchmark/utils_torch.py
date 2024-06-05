@@ -1,7 +1,8 @@
-from typing import Any, Callable, Literal, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
-import performance
 import torch
+
+from . import performance
 
 
 def time_model_inference(

@@ -1,7 +1,8 @@
 from typing import Any, Callable, Mapping, Sequence
 
-import performance
 import tensorflow as tf
+
+from . import performance
 
 
 def time_model_inference(
