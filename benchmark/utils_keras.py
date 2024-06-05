@@ -1,4 +1,4 @@
-from typing import Any, Callable, Literal, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 import performance
 import tensorflow as tf
@@ -42,7 +42,7 @@ def time_model_inference(
     model = tf.function(model, jit_compile=True)
 
     synchronous = tf.config.experimental.get_synchronous_execution()
-    
+
     r = performance.time_function_average(
         model,
         skip_first=True,
@@ -55,15 +55,11 @@ def time_model_inference(
 
 
 def main():
-    from models.vae_keras import get_vae
+    from models.vae_keras import get_vae_with_inputs
 
-    vae = get_vae()
-
-    with tf.device("cpu"):
-        r = time_model_inference(
-            vae, [tf.ones((32, 10))], {"training": False}
-        )
-        print(r[0])
+    vae, args, kwargs = get_vae_with_inputs(batch_size=32, device="cpu")
+    time, times = time_model_inference(vae, args=args, kwargs=kwargs)
+    print(time, len(times))
 
 
 if __name__ == "__main__":

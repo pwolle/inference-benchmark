@@ -1,3 +1,5 @@
+from typing import Literal
+
 import keras
 import tensorflow as tf
 
@@ -25,15 +27,24 @@ def get_vae() -> keras.Sequential:
     return model
 
 
-def get_vae_and_inputs(batch_si):
-    pass
+def get_vae_with_inputs(
+    *,
+    batch_size: int,
+    device: Literal["cpu", "gpu", "cuda"],
+) -> tuple[keras.Sequential, list[tf.Tensor], dict]:
+    if device == "cuda":
+        device = "gpu"
+
+    with tf.device(device):
+        vae = get_vae()
+        x = tf.random.normal((batch_size, 10))
+
+    return vae, [x], {}
 
 
 def main() -> None:
-    vae = get_vae()
-
-    x = tf.ones((32, 10))
-    print(vae(x).shape)
+    vae, args, kwargs = get_vae_with_inputs(batch_size=32, device="cpu")
+    print(vae(*args, **kwargs).shape)
 
 
 if __name__ == "__main__":

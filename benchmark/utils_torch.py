@@ -6,20 +6,15 @@ import torch
 
 def time_model_inference(
     model: Callable,
+    *,
     args: Sequence[Any] | None = None,
     kwargs: Mapping[str, Any] | None = None,
-    *,
-    device: Literal["cpu", "gpu"] | None = "cpu",
 ) -> tuple[float, list[float]]:
-    if device == "gpu":
-        device = "cuda"
-
     args = args or []
     kwargs = kwargs or {}
 
     model.eval()
-    model.to(device)
-    model = torch.jit.script(model, optimize=True)
+    model = torch.jit.script(model)
 
     return performance.time_function_average(
         model,
@@ -30,11 +25,11 @@ def time_model_inference(
 
 
 def main():
-    from models.vae_torch import get_vae
+    from models.vae_torch import get_vae_with_inputs
 
-    vae = get_vae()
-    r = time_model_inference(vae, [torch.ones((32, 10))], device="gpu")
-    print(r[0])
+    vae, args, kwargs = get_vae_with_inputs(batch_size=32, device="cpu")
+    time, times = time_model_inference(vae, args=args, kwargs=kwargs)
+    print(time, len(times))
 
 
 if __name__ == "__main__":
