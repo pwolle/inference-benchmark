@@ -16,7 +16,6 @@ def _synchronize_after(f):
     return wrapped
 
 
-
 def time_model_inference(
     model: Callable,
     *,

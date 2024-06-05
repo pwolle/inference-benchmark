@@ -10,36 +10,43 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 # %%
-fig, ax = plt.subplots(1, 1, figsize=(8, 4))
-
 plot_times = []
 plot_ticks = []
 plot_error = []
 
-for device in ["cpu", "gpu"]:
-    batch_size = 32
+batch_size = 32
+device = "cpu"
 
-    vae, args, kwargs = vae_keras.get_vae_with_inputs(
-        batch_size=batch_size,
-        device=device,
-    )
-    time, times = utils_keras.time_model_inference(vae, args=args, kwargs=kwargs)
-    error = np.std(times) / np.sqrt(len(times)) 
+torch.set_num_threads(1)
 
-    plot_times.append(time)
-    plot_ticks.append(f"Keras {device}")
-    plot_error.append(error)
+vae, args, kwargs = vae_torch.get_vae_with_inputs(
+    batch_size=batch_size,
+    device=device,
+)
+time, times = utils_torch.time_model_inference(vae, args=args, kwargs=kwargs)
+error = np.std(times) / np.sqrt(len(times)) 
 
-    vae, args, kwargs = vae_torch.get_vae_with_inputs(
-        batch_size=batch_size,
-        device=device,
-    )
-    time, times = utils_torch.time_model_inference(vae, args=args, kwargs=kwargs)
-    error = np.std(times) / np.sqrt(len(times)) 
+plot_times.append(time)
+plot_ticks.append(f"Torch {device}")
+plot_error.append(error)
 
-    plot_times.append(time)
-    plot_ticks.append(f"Torch {device}")
-    plot_error.append(error)
+
+tf.config.threading.get_inter_op_parallelism_threads()
+tf.config.threading.get_intra_op_parallelism_threads()
+
+vae, args, kwargs = vae_keras.get_vae_with_inputs(
+    batch_size=batch_size,
+    device=device,
+)
+time, times = utils_keras.time_model_inference(vae, args=args, kwargs=kwargs)
+error = np.std(times) / np.sqrt(len(times)) 
+
+plot_times.append(time)
+plot_ticks.append(f"Keras {device}")
+plot_error.append(error)
+
+
+fig, ax = plt.subplots(1, 1, figsize=(8, 4))
 
 ax.bar(plot_ticks, plot_times)
 ax.errorbar(

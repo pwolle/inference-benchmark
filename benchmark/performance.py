@@ -49,7 +49,7 @@ def time_function_average(
     kwargs: Mapping[str, Any] | None = None,
     skip_first: bool = True,
     time_threshold: None | float = None,
-    rerr_threshold: None | float = 1e-1,
+    rerr_threshold: None | float = 1e-2,
 ) -> tuple[float, list[float]]:
     """
     Computes the average time taken to execute a function f in seconds.

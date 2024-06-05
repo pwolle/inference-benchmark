@@ -2,7 +2,6 @@ from typing import Any, Mapping, Sequence
 
 import keras
 import tensorflow as tf
-import numpy as np
 import functools
 
 from . import performance
@@ -20,6 +19,21 @@ def _synchronize_after(f):
         return r
     
     return wrapped
+
+
+class SingleThreaded:
+    def __init__(self) -> None:
+        self.inter = tf.config.threading.get_inter_op_parallelism_threads()
+        self.intra = tf.config.threading.get_intra_op_parallelism_threads()
+
+    def __enter__(self):
+        tf.config.threading.set_inter_op_parallelism_threads(1)
+        tf.config.threading.set_intra_op_parallelism_threads(1)
+
+    def __exit__(self, *_):
+        # tf.config.threading.set_inter_op_parallelism_threads(self.inter)
+        # tf.config.threading.set_intra_op_parallelism_threads(self.intra)
+        pass
 
 
 def time_model_inference(
