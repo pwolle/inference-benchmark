@@ -33,7 +33,7 @@ def get_vae_with_inputs(
         device = "cuda"
 
     vae = get_vae().to(device)
-    x = torch.randn((batch_size, 10)).to(device)
+    x = torch.randn((batch_size, 10)).to(device).detach().requires_grad_(False)
     return vae, [x], {}
 
 
