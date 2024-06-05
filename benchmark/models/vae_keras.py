@@ -25,6 +25,10 @@ def get_vae() -> keras.Sequential:
     return model
 
 
+def get_vae_and_inputs(batch_si):
+    pass
+
+
 def main() -> None:
     vae = get_vae()
 

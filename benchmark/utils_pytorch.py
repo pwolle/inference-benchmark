@@ -11,6 +11,9 @@ def time_model_inference(
     *,
     device: Literal["cpu", "gpu"] | None = "cpu",
 ) -> tuple[float, list[float]]:
+    if device == "gpu":
+        device = "cuda"
+
     args = args or []
     kwargs = kwargs or {}
 
@@ -30,7 +33,7 @@ def main():
     from models.vae_torch import get_vae
 
     vae = get_vae()
-    r = time_model_inference(vae, [torch.ones((32, 10))], device="cpu")
+    r = time_model_inference(vae, [torch.ones((32, 10))], device="gpu")
     print(r[0])
 
 
