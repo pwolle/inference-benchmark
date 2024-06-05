@@ -2,6 +2,8 @@ import tensorflow as tf
 import keras
 
 
+
+
 def get_vae():
     model = keras.Sequential(
         [

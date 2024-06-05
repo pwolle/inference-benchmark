@@ -4,14 +4,18 @@ import numpy as np
 
 from typing import Callable, Literal
 
+print(tf.__version__)
+
+print(tf.config.get_visible_devices("GPU"))
+tf.config.set_visible_devices([], "GPU")
 
 tf.debugging.set_log_device_placement(True)
-
+tf.config.experimental.set_synchronous_execution(True)
 
 def get_keras_vae(
     *,
     batch_size: int = 32, 
-    device: Literal["cpu", "gpu"] = "cpu",
+    device: Literal["cpu", "gpu"] = "/cpu:0",
 ) -> Callable:
     with tf.device(device):
         model = keras.Sequential(
@@ -32,14 +36,21 @@ def get_keras_vae(
                 keras.layers.Activation("sigmoid"),
             ]
         )
-        x = tf.random.normal((batch_size, 10,))
-        model.build(x.shape)
+        model.build((batch_size, 10))
 
-        f = tf.function(lambda x: model(x, training=False), jit_compile=True)
-        f(x)
+    def f(x):
+        with tf.device('gpu'):
+            return model(x, training=False)
+ 
 
-        return lambda: np.array(f(x))
+    # f = lambda x: model(x, training=False)
+    f = tf.function(f, jit_compile=True)
+    x = tf.random.normal((batch_size, 10,), name="random")
+    print(x.device)
+    f(x)
+
+    return lambda: np.array(f(x))
 
 
 vae = get_keras_vae()
-print(vae())
+print(vae().shape)
