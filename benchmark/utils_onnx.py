@@ -1,17 +1,9 @@
-import os
-
-os.environ["OMP_NUM_THREADS"] = "1"
-
-
 import tempfile
 
 import onnxruntime
 
-# from . import performance
-import performance
+from . import performance
 import torch
-
-# class InputWrapper():
 
 
 def from_torch(model, inputs):
@@ -30,33 +22,19 @@ def from_torch(model, inputs):
 
         return onnxruntime.InferenceSession(
             f.name,
-            providers=[
-                "CPUExecutionProvider",
-            ],
+            providers=["CPUExecutionProvider"],
             sess_options=opts,
         )
 
 
-def time_model_inference(
-    model,
-    *,
-    args=None,
-    kwargs=None,
-    device="cpu",
-):
-    args = args or []
-    kwargs = kwargs or {}
-
-    model = from_torch(model, tuple(args))
-    print(model.get_providers())
+def time_model_inference(model, x: torch.Tensor):
+    model = from_torch(model, x)
+    x = x.detach().cpu().numpy()
 
     return performance.time_function_average(
-        lambda *args, **kwargs: model.run(
-            None, {"input": args[0].detach().cpu().numpy()}
-        )[0],
+        lambda x: model.run(None, {"input": x}),
         skip_first=True,
-        args=args,
-        kwargs=kwargs,
+        args=(x,),
     )
 
 

@@ -1,5 +1,3 @@
-from typing import Any, Mapping, Sequence
-
 import keras
 import tensorflow as tf
 import functools
@@ -17,7 +15,7 @@ def _synchronize_after(f):
         r = f(*args, **kwargs)
         tf.test.experimental.sync_devices()
         return r
-    
+
     return wrapped
 
 
@@ -38,8 +36,7 @@ class SingleThreaded:
 
 def time_model_inference(
     model: keras.Model,
-    args: Sequence[Any] | None = None,
-    kwargs: Mapping[str, Any] | None = None,
+    x: tf.Tensor,
 ) -> tuple[float, list[float]]:
     """
     Test the performance of a model by timing its execution. The model is
@@ -67,8 +64,6 @@ def time_model_inference(
         The average time taken to execute the model in seconds and a list of
         the times taken to execute the model in seconds.
     """
-    args = args or []
-    kwargs = kwargs or {}
 
     synchronous = tf.config.experimental.get_synchronous_execution()
     tf.config.experimental.set_synchronous_execution(False)
@@ -80,10 +75,9 @@ def time_model_inference(
         model = _synchronize_after(model)
 
         r = performance.time_function_average(
-            model,
+            lambda x: model(x, training=False),
             skip_first=True,
-            args=args,
-            kwargs=kwargs,
+            args=(x,),
         )
 
     tf.config.experimental.set_synchronous_execution(synchronous)

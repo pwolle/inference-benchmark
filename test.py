@@ -3,6 +3,7 @@ import benchmark.models.vae_keras as vae_keras
 import benchmark.models.vae_torch as vae_torch
 import benchmark.utils_keras as utils_keras
 import benchmark.utils_torch as utils_torch
+import benchmark.utils_onnx as utils_onnx
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,37 +11,43 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import torch
 
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
+
+tf.config.threading.set_inter_op_parallelism_threads(1)
+tf.config.threading.set_intra_op_parallelism_threads(1)
+
 # %%
 plot_times = []
 plot_ticks = []
 plot_error = []
 
-batch_size = 32
+batch_size = 1024
 device = "cpu"
 
-torch.set_num_threads(1)
-torch.set_num_interop_threads(1)
-
-vae, args, kwargs = vae_torch.get_vae_with_inputs(
+vae, x = vae_torch.get_vae_with_inputs(
     batch_size=batch_size,
     device=device,
 )
-time, times = utils_torch.time_model_inference(vae, args=args, kwargs=kwargs)
+time, times = utils_torch.time_model_inference(vae, x)
 error = np.std(times) / np.sqrt(len(times))
 
 plot_times.append(time)
 plot_ticks.append(f"Torch {device}")
 plot_error.append(error)
 
+time, times = utils_onnx.time_model_inference(vae, x)
+error = np.std(times) / np.sqrt(len(times))
 
-tf.config.threading.get_inter_op_parallelism_threads()
-tf.config.threading.get_intra_op_parallelism_threads()
+plot_times.append(time)
+plot_ticks.append(f"ONNX {device}")
+plot_error.append(error)
 
-vae, args, kwargs = vae_keras.get_vae_with_inputs(
+vae, x = vae_keras.get_vae_with_inputs(
     batch_size=batch_size,
     device=device,
 )
-time, times = utils_keras.time_model_inference(vae, args=args, kwargs=kwargs)
+time, times = utils_keras.time_model_inference(vae, x)
 error = np.std(times) / np.sqrt(len(times))
 
 plot_times.append(time)
@@ -56,6 +63,7 @@ ax.errorbar(
 )
 
 ax.set_ylabel("Time [s]")
-plt.title("Fastsim VAE Decoder Inference Times (batchsize 32)", pad=5)
+plt.title("Fastsim VAE Decoder Inference Times (batchsize 32)")
+None
 
 # %%

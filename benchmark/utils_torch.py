@@ -1,7 +1,7 @@
-from typing import Any, Callable, Mapping, Sequence
+import functools
+from typing import Any, Callable
 
 import torch
-import functools
 
 from . import performance
 
@@ -12,28 +12,23 @@ def _synchronize_after(f):
         r = f(*args, **kwargs)
         torch.cuda.synchronize()
         return r
-    
+
     return wrapped
 
 
 def time_model_inference(
-    model: Callable,
-    *,
-    args: Sequence[Any] | None = None,
-    kwargs: Mapping[str, Any] | None = None,
+    model: Callable[[torch.Tensor], Any],
+    x: torch.Tensor,
 ) -> tuple[float, list[float]]:
-    args = args or []
-    kwargs = kwargs or {}
-
     model.eval()
+
     model = torch.jit.script(model)
     model = _synchronize_after(model)
 
     return performance.time_function_average(
         model,
         skip_first=True,
-        args=args,
-        kwargs=kwargs,
+        args=(x,),
     )
 
 

@@ -4,7 +4,6 @@ import keras
 import tensorflow as tf
 
 
-
 def get_vae() -> keras.Sequential:
     model = keras.Sequential(
         [
@@ -32,7 +31,7 @@ def get_vae_with_inputs(
     *,
     batch_size: int,
     device: Literal["cpu", "gpu", "cuda"],
-) -> tuple[keras.Sequential, list[tf.Tensor], dict]:
+) -> tuple[keras.Sequential, tf.Tensor]:
     if device == "cuda":
         device = "gpu"
 
@@ -40,7 +39,7 @@ def get_vae_with_inputs(
         vae = get_vae()
         x = tf.random.normal((batch_size, 10))
 
-    return vae, [x], {"training": False}
+    return vae, x
 
 
 def main() -> None:
