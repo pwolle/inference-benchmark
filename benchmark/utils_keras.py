@@ -71,11 +71,11 @@ def time_model_inference(
     with tf.device(_get_device(model)):
         assert callable(model), "Model is not callable"
 
-        model = tf.function(model, jit_compile=True)
-        model = _synchronize_after(model)
+        model = tf.function(model, jit_compile=True)  # type: ignore
+        model = _synchronize_after(model)  # type: ignore
 
         r = performance.time_function_average(
-            lambda x: model(x, training=False),
+            lambda x: model(x, training=False),  # type: ignore
             skip_first=True,
             args=(x,),
         )
@@ -87,8 +87,8 @@ def time_model_inference(
 def main():
     from models.vae_keras import get_vae_with_inputs
 
-    vae, args, kwargs = get_vae_with_inputs(batch_size=32, device="cpu")
-    time, times = time_model_inference(vae, args=args, kwargs=kwargs)
+    vae, x = get_vae_with_inputs(batch_size=32, device="cpu")
+    time, times = time_model_inference(vae, x)
     print(time, len(times))
 
 

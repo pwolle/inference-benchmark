@@ -35,8 +35,8 @@ def time_model_inference(
 def main():
     from models.vae_torch import get_vae_with_inputs
 
-    vae, args, kwargs = get_vae_with_inputs(batch_size=32, device="cpu")
-    time, times = time_model_inference(vae, args=args, kwargs=kwargs)
+    vae, x = get_vae_with_inputs(batch_size=32, device="cpu")
+    time, times = time_model_inference(vae, x)
     print(time, len(times))
 
 

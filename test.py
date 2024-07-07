@@ -64,6 +64,5 @@ ax.errorbar(
 
 ax.set_ylabel("Time [s]")
 plt.title("Fastsim VAE Decoder Inference Times (batchsize 32)")
-None
 
 # %%

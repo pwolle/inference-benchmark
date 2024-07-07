@@ -43,8 +43,8 @@ def get_vae_with_inputs(
 
 
 def main() -> None:
-    vae, args, kwargs = get_vae_with_inputs(batch_size=32, device="cpu")
-    print(vae(*args, **kwargs).shape)
+    vae, x = get_vae_with_inputs(batch_size=32, device="cpu")
+    print(vae(x).shape)
 
 
 if __name__ == "__main__":

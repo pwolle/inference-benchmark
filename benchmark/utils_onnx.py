@@ -32,7 +32,7 @@ def time_model_inference(model, x: torch.Tensor):
     x = x.detach().cpu().numpy()
 
     return performance.time_function_average(
-        lambda x: model.run(None, {"input": x}),
+        lambda x: model.run(None, {"input": x}),  # type: ignore
         skip_first=True,
         args=(x,),
     )
@@ -41,8 +41,8 @@ def time_model_inference(model, x: torch.Tensor):
 def main():
     from models.vae_torch import get_vae_with_inputs
 
-    vae, args, kwargs = get_vae_with_inputs(batch_size=32, device="cpu")
-    time, times = time_model_inference(vae, args=args, kwargs=kwargs)
+    vae, x = get_vae_with_inputs(batch_size=32, device="cpu")
+    time, times = time_model_inference(vae, x)
     print(time, len(times))
 
 
