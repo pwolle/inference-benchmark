@@ -282,6 +282,9 @@ def benchmark_sofie(
     batch_size: int,
     device: str,
 ):
+    if device == "gpu":
+        raise ValueError("Inference benchmark does not support SOFIE with GPU")
+
     if device == "singlethreaded":
         import os
 
@@ -359,13 +362,13 @@ def main():
     parser.add_argument(
         "--backend",
         type=str,
-        default="sofie",
+        default="keras",
         choices=["torch", "onnxruntime", "keras", "sofie"],
     )
     parser.add_argument(
         "--output",
         type=str,
-        default="output.csv",
+        default="output2.csv",
     )
     args = parser.parse_args()
 
@@ -381,6 +384,7 @@ def main():
 
     df = [
         {
+            "onnx_path": args.onnx_path,
             "backend": args.backend,
             "device": args.device,
             "batch_size": args.batch_size,
@@ -392,10 +396,10 @@ def main():
     df = pd.DataFrame(df)
 
     if os.path.exists(args.output):
-        df.to_csv(args.output, mode="a", header=False)
+        df.to_csv(args.output, mode="a", header=False, index=False)
 
     else:
-        df.to_csv(args.output)
+        df.to_csv(args.output, index=False)
 
 
 if __name__ == "__main__":
